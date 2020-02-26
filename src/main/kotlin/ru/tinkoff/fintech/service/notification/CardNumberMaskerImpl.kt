@@ -1,6 +1,5 @@
 package ru.tinkoff.fintech.service.notification
 
-import java.lang.Exception
 
 class CardNumberMaskerImpl : CardNumberMasker {
 
