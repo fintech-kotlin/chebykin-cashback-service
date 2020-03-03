@@ -25,23 +25,26 @@ class CashbackCalculatorImpl : CashbackCalculator {
         private val PRIBILEGED_LASTNAME = "Олегов"
     }
 
-    val calcIf666Cashback: CalcCashbackPercentClassic = { trInfo ->
+    private val calcIf666Cashback: CalcCashbackPercentClassic = { trInfo ->
         if (isDivided(trInfo.transactionSum, 666.0)) SIX_SIX_SIX_CASHBACK_PERCENT
         else 0.0
     }
 
-    val calcIfAllCashback: CalcCashbackPercentClassic = { trInfo ->
+    private val calcIfAllCashback: CalcCashbackPercentClassic = { trInfo ->
         lcm(trInfo.firstName.length, trInfo.lastName.length).toDouble() / 1000.0
     }
 
-    val calcIfBeerCashback: CalcCashbackPercentClassic = { trInfo ->
+    private val calcIfBeerCashback: CalcCashbackPercentClassic = { trInfo ->
         when (true) {
             trInfo.firstName.equals(PRIBILEGED_NAME, true) &&
                     trInfo.lastName.equals(PRIBILEGED_LASTNAME, true) -> 10.0
             trInfo.firstName.equals(PRIBILEGED_NAME, true) -> 7.0
             isEqualFirstSymbolsOfMounthAndName(LocalDate.now().month, trInfo.firstName) -> 5.0
             isEqualFirstSymbolsOfMounthAndName(LocalDate.now().month.plus(1), trInfo.firstName),
-            isEqualFirstSymbolsOfMounthAndName(LocalDate.now().month.minus(1), trInfo.firstName) -> 3.0
+            isEqualFirstSymbolsOfMounthAndName(
+                LocalDate.now().month.minus(1),
+                trInfo.firstName
+            ) -> 3.0
 
             else -> 2.0
         }
@@ -66,35 +69,41 @@ class CashbackCalculatorImpl : CashbackCalculator {
         return resultPercent / 100
     }
 
-    private fun getBeerLoyalityProgramCashback(transactionInfo: TransactionInfo): Double {
+    private fun getBeerLoyalityProgramCashback(transactionInfo: TransactionInfo) =
         transactionInfo.mccCode?.let {
             if (it == MCC_BEER) {
-                return calcIfBeerCashback(transactionInfo)
+                calcIfBeerCashback(transactionInfo)
             } else {
-                return 0.0
+                0.0
             }
-        } ?: return 0.0
-    }
+        } ?: 0.0
 
-    private fun getAllLoyalityProgramCashback(transactionInfo: TransactionInfo): Double {
+    private fun getAllLoyalityProgramCashback(transactionInfo: TransactionInfo) =
         transactionInfo.mccCode?.let {
             if (it == MCC_SOFTWARE) {
-                return calcIfAllCashback(transactionInfo)
+                if (isPalindromWithPossibleMistakes(
+                        sum = (transactionInfo.transactionSum * 100).toInt()
+                    )
+                ) {
+                    calcIfAllCashback(transactionInfo)
+                } else {
+                    0.0
+                }
             } else {
-                return 0.0
+                0.0
             }
-        } ?: return 0.0
-    }
+        } ?: 0.0
 
-    private fun isEqualFirstSymbolsOfMounthAndName(month: Month, name:String): Boolean {
-        return month.getDisplayName(TextStyle.FULL, Locale("ru"))[0].equals(name[0], true)
-    }
+
+    private fun isEqualFirstSymbolsOfMounthAndName(month: Month, name: String): Boolean =
+        month.getDisplayName(TextStyle.FULL, Locale("ru"))[0].equals(name[0], true)
+
 
     //Методы ниже можно вынести в отдельный утилитный файл
     private fun Double.roundTo2Decimal(): Double =
         BigDecimal(this).setScale(2, BigDecimal.ROUND_HALF_UP).toDouble()
 
-    private fun isDivided(x: Double, y: Double) = Math.floor(x / y) == (x / y)
+    private fun isDivided(x: Double, y: Double) = x % y == 0.0
 
     private fun lcm(a: Int, b: Int): Int {
         return a / gcd(a, b) * b
