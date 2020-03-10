@@ -4,9 +4,10 @@ package ru.tinkoff.fintech.service.notification
 class CardNumberMaskerImpl : CardNumberMasker {
 
     override fun mask(cardNumber: String, maskChar: Char, start: Int, end: Int): String {
-        if (end < start) throw Exception("start: $start must be less or equal to end: $end, but it's not")
-        var countFromEnd = cardNumber.length - end
-        countFromEnd = if (countFromEnd < 0) 0 else countFromEnd
-        return cardNumber.replace(Regex("(?<=.{$start}).(?=.{$countFromEnd})"), maskChar.toString())
+        require(end >= start) { "Start index cannot be greater than end index" }
+
+        return cardNumber
+            .mapIndexed { index, number -> if (index in start until end) maskChar else number }
+            .joinToString("")
     }
 }
