@@ -1,6 +1,15 @@
 spring:
   kafka:
-    bootstrap-servers: 40.69.78.245:19092
+    consumer:
+      bootstrap-servers: 40.69.78.245:19092
+      group_id: cashback
+      topic: transactions
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        request.timeout.ms: 20000
+        spring.json.type.mapping: ru.tinkoff.bpm.kotlincoursepaymentprocessing.kafka.TransactionInfo:ru.tinkoff.fintech.model.Transaction
+        spring.json.value.default.type: ru.tinkoff.fintech.model.Transaction
+
   datasource:
     url: jdbc:postgresql://tinkoff-kotlin-psql-1.postgres.database.azure.com:5432/fintech?currentSchema=cashback
     username: kotlin_master@tinkoff-kotlin-psql-1.postgres.database.azure.com
@@ -8,9 +17,11 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
 
-transactionProcessor:
-  kafka:
+  transactionProcessor:
     topic: transactions
+
+services
+  sign: chebykin
 
 logging:
   level:
