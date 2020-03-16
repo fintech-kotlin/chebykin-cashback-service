@@ -7,5 +7,5 @@ import java.time.LocalDateTime
 
 @Repository
 interface LoyaltyPaymentRepository : JpaRepository<LoyaltyPaymentEntity, Long> {
-    fun findByCardIdAndDateTimeAfter(cardId: String, dateTime: LocalDateTime) : Collection<LoyaltyPaymentEntity>
+    fun findByCardIdAndSignAndDateTimeAfter(cardId: String, sign: String, dateTime: LocalDateTime) : Collection<LoyaltyPaymentEntity>
 }

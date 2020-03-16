@@ -4,31 +4,32 @@ spring:
       bootstrap-servers: 40.69.78.245:19092
       group_id: cashback
       topic: transactions
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#      properties:
-#        request.timeout.ms: 20000
-#        spring.json.type.mapping: ru.tinkoff.bpm.kotlincoursepaymentprocessing.kafka.TransactionInfo:ru.tinkoff.fintech.model.Transaction
-#        spring.json.value.default.type: ru.tinkoff.fintech.model.Transaction
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        request.timeout.ms: 15000
 
   datasource:
     url: ****
     username: ****.postgres.database.azure.com
     password: ****
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
 
-  transactionProcessor:
-    services:
+  jpa:
+    show-sql: true
+
+rest:
+   services:
       uri:
         card: http://****/card-service/api/v1/card
         client: http://****/client-service/api/v1/client
         loyalty: http://****/loyalty-service/api/v1/program
         notification: http://****/notification-service/api/v2/client
-      sign: chebykin
-
+      sign: chebykin-cashback-service
+#настройка логирования в процессе
 logging:
   level:
-    root: WARN
-    org.springframework.web: INFO
-    com.memorynotfound: DEBUG
+    org.springframework.web: ERROR
+    com.mylog: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file: /app/myfile/app.log

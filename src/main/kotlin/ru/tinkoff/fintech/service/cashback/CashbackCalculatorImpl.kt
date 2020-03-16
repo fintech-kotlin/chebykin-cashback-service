@@ -1,5 +1,6 @@
 package ru.tinkoff.fintech.service.cashback
 
+import org.springframework.stereotype.Service
 import ru.tinkoff.fintech.model.TransactionInfo
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -16,6 +17,7 @@ internal const val MCC_BEER = 5921
 
 typealias CalcCashbackPercentClassic = (TransactionInfo) -> Double
 
+@Service
 class CashbackCalculatorImpl : CashbackCalculator {
     companion object {
         private val BLACK_CASHBACK_PERCENT = 1.0
