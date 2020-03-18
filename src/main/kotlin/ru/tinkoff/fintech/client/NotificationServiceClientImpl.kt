@@ -1,6 +1,6 @@
 package ru.tinkoff.fintech.client
 
-import org.slf4j.LoggerFactory
+import mu.KLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -8,7 +8,6 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
-import ru.tinkoff.fintech.model.LoyaltyProgram
 
 @Component
 class NotificationServiceClientImpl(
@@ -16,9 +15,7 @@ class NotificationServiceClientImpl(
     private val restTemplate: RestTemplate
 ) : NotificationServiceClient {
 
-    companion object {
-        private val LOGGER = LoggerFactory.getLogger(NotificationServiceClientImpl::class.java)
-    }
+    companion object : KLogging()
 
     override fun sendNotification(clientId: String, message: String) {
         val httpHeaders = HttpHeaders()
@@ -35,7 +32,7 @@ class NotificationServiceClientImpl(
                 Message: $message
                 Unsuccessful result. Status: ${response.statusCodeValue}
             """.trimIndent()
-            LOGGER.error(errorMessage)
+            logger.error(errorMessage)
             throw RestClientException(errorMessage)
         }
     }

@@ -1,6 +1,6 @@
 package ru.tinkoff.fintech.service.processor
 
-import org.slf4j.LoggerFactory
+import mu.KLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import ru.tinkoff.fintech.client.CardServiceClient
@@ -26,12 +26,10 @@ class TransactionProcessorImpl(
     @Value("\${rest.services.sign}") private val sign: String
 ) : TransactionProcessor {
 
-    companion object {
-        private val LOGGER = LoggerFactory.getLogger(TransactionProcessorImpl::class.java)
-    }
+    companion object : KLogging()
 
     override fun processTransaction(transaction: Transaction) {
-        LOGGER.debug("start process transation {}", transaction)
+        logger.debug("start process transation {}", transaction)
 
         transaction.mccCode?.let {
             try {
@@ -72,9 +70,9 @@ class TransactionProcessorImpl(
                 )
 
             } catch (e: Exception) {
-                LOGGER.error("Joder!", e)
+                logger.error("Joder!", e)
             }
-        } ?: LOGGER.debug("Mcc is null. $transaction")
+        } ?: logger.debug("Mcc is null. $transaction")
     }
 
     private fun buildMessage(transaction: Transaction, transactionInfo: TransactionInfo, cashback: Double) =
