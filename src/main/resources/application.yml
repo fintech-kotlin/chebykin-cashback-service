@@ -1,0 +1,35 @@
+spring:
+  kafka:
+    consumer:
+      bootstrap-servers: 40.69.78.245:19092
+      group_id: cashback
+      topic: transactions
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        request.timeout.ms: 15000
+
+  datasource:
+    url: jdbc:postgresql://tinkoff-kotlin-psql-1.postgres.database.azure.com:5432/fintech?currentSchema=cashback
+    username: kotlin_master@tinkoff-kotlin-psql-1.postgres.database.azure.com
+    password: koklin
+
+  jpa:
+    show-sql: true
+
+rest:
+   services:
+      uri:
+        card: http://13.79.17.165/card-service/api/v1/card
+        client: http://13.79.17.165/client-service/api/v1/client
+        loyalty: http://13.79.17.165/loyalty-service/api/v1/program
+        notification: http://13.79.17.165/notification-service/api/v2/client
+      sign: chebykin-cashback-service
+#настройка логирования в процессе
+logging:
+  level:
+    org.springframework.web: ERROR
+    com.mylog: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file: /app/myfile/app.log
