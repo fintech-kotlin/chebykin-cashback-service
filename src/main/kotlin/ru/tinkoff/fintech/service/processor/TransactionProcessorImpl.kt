@@ -1,5 +1,9 @@
 package ru.tinkoff.fintech.service.processor
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -31,48 +35,57 @@ class TransactionProcessorImpl(
     override fun processTransaction(transaction: Transaction) {
         logger.debug("start process transation {}", transaction)
 
-        transaction.mccCode?.let {
-            try {
-                val card = cardService.getCard(transaction.cardNumber)
-                val client = clientService.getClient(card.client)
-                val loyaltyProgram = loyaltyService.getLoyaltyProgram(card.loyaltyProgram)
+        runBlocking(Dispatchers.IO) {
+            transaction.mccCode?.let {
+                try {
+                    val card = cardService.getCard(transaction.cardNumber)
+                    val clientCallback = async { clientService.getClient(card.client) }
+                    val loyaltyProgram = async { loyaltyService.getLoyaltyProgram(card.loyaltyProgram) }
 
-                val startOfMonth = LocalDate.from(transaction.time).withDayOfMonth(1).atStartOfDay()
-                val totalMonthSum = loyaltyPaymentRepository.findByCardIdAndSignAndDateTimeAfter(card.id, sign, startOfMonth)
-                    .fold(0.0, { acc, LoyaltyPaymentEntity -> acc + LoyaltyPaymentEntity.value })
+                    val startOfMonth = LocalDate.from(transaction.time).withDayOfMonth(1).atStartOfDay()
+                    val totalMonthSum = async {
+                        loyaltyPaymentRepository.findByCardIdAndSignAndDateTimeAfter(card.id, sign, startOfMonth)
+                            .fold(0.0, { acc, LoyaltyPaymentEntity -> acc + LoyaltyPaymentEntity.value })
+                    }
+                    val client = clientCallback.await()
 
-                val transactionInfo = TransactionInfo(
-                    loyaltyProgramName = loyaltyProgram.name,
-                    transactionSum = transaction.value,
-                    mccCode = it,
-                    firstName = client.firstName,
-                    lastName = client.lastName,
-                    middleName = client.middleName,
-                    clientBirthDate = client.birthDate,
-                    cashbackTotalValue = totalMonthSum
-                )
-
-                val cashback = cashbackCalculator.calculateCashback(transactionInfo)
-
-                loyaltyPaymentRepository.save(
-                    LoyaltyPaymentEntity(
-                        value = cashback,
-                        cardId = card.id,
-                        sign = sign,
-                        transactionId = transaction.transactionId,
-                        dateTime = transaction.time
+                    val transactionInfo = TransactionInfo(
+                        loyaltyProgramName = loyaltyProgram.await().name,
+                        transactionSum = transaction.value,
+                        mccCode = it,
+                        firstName = client.firstName,
+                        lastName = client.lastName,
+                        middleName = client.middleName,
+                        clientBirthDate = client.birthDate,
+                        cashbackTotalValue = totalMonthSum.await()
                     )
-                )
 
-                notificationService.sendNotification(
-                    clientId = client.id,
-                    notificationMessageInfo = buildMessage(transaction, transactionInfo, cashback)
-                )
+                    val cashback = cashbackCalculator.calculateCashback(transactionInfo)
 
-            } catch (e: Exception) {
-                logger.error("Joder!", e)
-            }
-        } ?: logger.debug("Mcc is null. $transaction")
+                    launch {
+                        loyaltyPaymentRepository.save(
+                            LoyaltyPaymentEntity(
+                                value = cashback,
+                                cardId = card.id,
+                                sign = sign,
+                                transactionId = transaction.transactionId,
+                                dateTime = transaction.time
+                            )
+                        )
+                    }
+
+                    launch {
+                        notificationService.sendNotification(
+                            clientId = client.id,
+                            notificationMessageInfo = buildMessage(transaction, transactionInfo, cashback)
+                        )
+                    }
+
+                } catch (e: Exception) {
+                    logger.error("Joder!", e)
+                }
+            } ?: logger.debug("Mcc is null. $transaction")
+        }
     }
 
     private fun buildMessage(transaction: Transaction, transactionInfo: TransactionInfo, cashback: Double) =

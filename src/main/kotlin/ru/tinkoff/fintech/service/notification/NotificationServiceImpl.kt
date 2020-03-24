@@ -9,7 +9,7 @@ class NotificationServiceImpl(
     private val notificationServiceClient: NotificationServiceClient,
     private val messageGenerator: NotificationMessageGenerator
 ) : NotificationService {
-    override fun sendNotification(clientId: String, notificationMessageInfo: NotificationMessageInfo) {
+    override suspend fun sendNotification(clientId: String, notificationMessageInfo: NotificationMessageInfo) {
         val message = messageGenerator.generateMessage(notificationMessageInfo)
 
         notificationServiceClient.sendNotification(clientId, message)

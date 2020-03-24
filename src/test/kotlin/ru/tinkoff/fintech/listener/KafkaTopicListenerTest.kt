@@ -80,7 +80,7 @@ internal class MyTestClass {
     }
 
     @Test
-    fun testReceive() {
+    suspend fun testReceive() {
         Mockito.`when`(cardService.getCard(anyString())).thenReturn(card)
         Mockito.`when`(clientService.getClient(anyString())).thenReturn(client)
         Mockito.`when`(loyaltyService.getLoyaltyProgram(anyString())).thenReturn(loyalty)

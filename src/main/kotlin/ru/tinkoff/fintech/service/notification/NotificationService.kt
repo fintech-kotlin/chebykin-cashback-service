@@ -4,5 +4,5 @@ import ru.tinkoff.fintech.model.NotificationMessageInfo
 
 interface NotificationService {
 
-    fun sendNotification(clientId: String, notificationMessageInfo: NotificationMessageInfo)
+    suspend fun sendNotification(clientId: String, notificationMessageInfo: NotificationMessageInfo)
 }

@@ -16,7 +16,7 @@ class CardServiceClientImpl(
 
     companion object : KLogging()
 
-    override fun getCard(id: String): Card {
+    override suspend fun getCard(id: String): Card {
         val response = restTemplate.getForEntity("$uri/$id", Card::class.java)
 
         if (response.statusCode.is2xxSuccessful) {
