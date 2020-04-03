@@ -8,7 +8,7 @@ import java.time.Month
 
 class CashbackCalculatorTest {
 
-    private val observable = CashbackCalculatorImpl()
+    private val observable = CashbackCalculatorImpl(CashbackRuleMatcher())
 
     @Test
     fun `cashBack is equals 10 for first transaction sum 1000 and black loyalty program`() {
