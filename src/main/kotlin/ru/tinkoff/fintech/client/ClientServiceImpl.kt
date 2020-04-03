@@ -16,7 +16,7 @@ class ClientServiceImpl(
 
     companion object : KLogging()
 
-    override fun getClient(id: String): Client {
+    override suspend fun getClient(id: String): Client {
         val response = restTemplate.getForEntity("$uri/$id", Client::class.java)
 
         if (response.statusCode.is2xxSuccessful) {
